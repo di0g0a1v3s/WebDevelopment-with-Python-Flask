@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.css">
+    <script  src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.js">  </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-xmlrpc/0.4.3/jquery.xmlrpc.js"> </script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script>
+    
+        $(document).ready(function(){
+            $("#stats").hide()
+
+            $.ajax({
+                url: '/API/admin/users/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    data["users"].forEach(v => {
+                        $('#userlist').append('<option value=' + v["id"]+ '> ' + v["id"]+ ' </option>'); 
+                    });
+                }
+            })
+
+
+            $("#update").click(function(){
+              $("#stats").show()
+
+
+                $.ajax({
+                    url: '/API/admin/users/'+$("#userlist").dropdown('get value')+'/',
+                    type: "GET",
+                    dataType: "json",
+                    success: function (data) {
+                      console.log(data)
+                      $("#nVideos").html(String(data["number_videos"]))
+                      $("#nAnswers").html(String(data["number_answers"]))
+                      $("#nQuestions").html(String(data["number_questions"]))
+                      $("#nViews").html(String(data["number_views"]))
+                    }
+
+                });
+            })
+
+        });
+
+    </script>
+
+  </head>
+  <body>
+    <br>
+    <h3>User</h3>
+    <select class="ui selection dropdown" id ="userlist">
+    </select>
+    <button class="ui button" id="update">
+      View statistics
+    </button>
+    <br>
+    <br>
+    <br>
+    <div class="ui statistics" style="position: relative; left:40px;" id="stats">
+      <div class="statistic">
+        <div class="value" id="nVideos">
+        </div>
+        <div class="label">
+          Videos Registered
+        </div>
+      </div>
+      <div class="statistic">
+        <div class="value" id="nViews">
+          
+        </div>
+        <div class="label">
+          Views
+        </div>
+      </div>
+      <div class="statistic">
+        <div class="value" id="nQuestions">
+          
+        </div>
+        <div class="label">
+          Questions
+        </div>
+      </div>
+      <div class="statistic">
+        <div class="value" id="nAnswers">
+          
+        </div>
+        <div class="label">
+          Answers
+        </div>
+      </div>
+    </div>
+
+  </body>
+
+</html>

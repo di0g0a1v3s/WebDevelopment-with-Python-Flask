@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.css">
+    <script  src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.js">  </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-xmlrpc/0.4.3/jquery.xmlrpc.js"> </script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <link href="https://vjs.zencdn.net/7.8.4/video-js.css" rel="stylesheet" />
+    <script src="http://vjs.zencdn.net/7.8.4/video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/2.6.1/Youtube.min.js"></script>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = parseInt(urlParams.get('id'))
+        var question_id;
+        var QuestionsTime={}
+        var QuestionsName={}
+        var QuestionsUserId={}
+        console.log(id);
+
+
+        function incrementViews(){
+          $.ajax({
+                url: '/API/private/videos/'+id+'/views/',
+                type: "PUT",
+                dataType: "json",
+                success:function(data){
+                    console.log(data)
+                    updateQuestiontable()
+                }
+            });
+        }
+
+        function updateQuestiontable(){
+            $.ajax({
+                url: '/API/private/videos/'+id+'/questions/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    QuestionsTime={}
+                    QuestionsName={}
+                    QuestionsUserId={}
+                    $('#QuestionTable > tbody:last-child').empty()
+                    data["questions"].forEach(v => {
+                        $('#QuestionTable > tbody:last-child').
+                            append('<tr> <td>'+ v["time_instant"]+'</td><td >' +v["text"] + '</td><td >'+'<button class="ui button" onclick="ViewAnswer('+v["id"]+')">View</button> </td></tr>');
+                            QuestionsTime[v["id"]]=v["time_instant"]
+                            QuestionsName[v["id"]]=v["user_name"]
+                            QuestionsUserId[v["id"]]=v["user_id"]
+                      
+                    });
+                }
+            });
+        }
+
+        function updateAnswertable(question_id){
+          $.ajax({
+              url: '/API/private/videos/'+id+'/questions/'+parseInt(question_id)+'/answers',
+              type: "GET",
+              dataType: "json",
+              success: function (data) {
+                  $("#stopTime").val(QuestionsTime[question_id])
+                  $("#QuestionUser").html("User "+ QuestionsUserId[question_id] +": "+QuestionsName[question_id])
+                  $('#AnswerTable > tbody:last-child').empty()
+                  //$("#AnswerTable tbody tr").remove()
+                  data["answers"].forEach(v => {
+                      $('#AnswerTable > tbody:last-child').
+                          append('<tr> <td style="width: 15%; ">'+ v["user_id"]+'</td><td style="width: 25%;">'+ v["user_name"]+'</td><td style="width: 60%;">' +v["text"] +'</td></tr>');
+                  });
+              }
+            });
+        }
+
+        function addQuestion(time, text){
+            requestData={"time_instant":time , "text":text}
+            $.ajax({
+                url: '/API/private/videos/'+id+'/questions/',
+                type: "POST",
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function(data){
+                  updateQuestiontable()
+              }
+            });
+        }
+
+        function addAnswer(text, question_id){
+            requestData={"text":text}
+            $.ajax({
+                url: '/API/private/videos/'+id+'/questions/'+ parseInt(question_id)+ '/answers/',
+                type: "POST",
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                success: function(data){
+                  updateAnswertable(question_id)
+              }
+            });
+        }
+        function ViewAnswer(id){
+            $("#QuestionUser").show();
+            $("#Timetable").show();
+            $("#Answers").show();
+            $("#AnswersTab").show();
+            $("#NewAnswerTab").show();
+            question_id=id
+            updateAnswertable(question_id)
+
+        }
+        
+        $(document).ready(function(){
+            $("#Question").hide();
+            $("#Timetable").hide();
+            $("#QuestionUser").hide();
+            $("#Answers").hide();
+            $("#AnswersTab").hide();
+            $("#NewAnswerTab").hide();
+
+            
+
+            var vPlayer = videojs('videoPlayer');
+            
+
+            $.ajax({
+                url: '/API/private/videos/'+id+'/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $("#header").html(data["description"])
+                    vPlayer.src({ "type": "video/youtube", "src": data["url"]});
+                    incrementViews()
+                    vPlayer.play()
+                    
+                    
+                }
+            });
+
+            $("#Buttonpause").click(function(){
+                vPlayer.pause()
+                pauseTime = vPlayer.currentTime()
+            })
+            
+            $("#Buttonplay").click(function(){
+              vPlayer.play()
+            })
+            var timeString;
+            $("#NewQuestion").click(function(){
+                vPlayer.pause()
+                pauseTime = vPlayer.currentTime()
+                var date = new Date(0);
+                date.setSeconds(pauseTime); // specify value for SECONDS here
+                timeString = date.toISOString().substr(11, 8)
+                $("#Question").show()
+                $("#stopTime").val(timeString)
+                $("#Timetable").show()
+            })
+            $("#submitQuestion").click(function(){
+                addQuestion(timeString, $("#TextQuestion").val())
+                $("#TextQuestion").val("")
+                vPlayer.play()
+            })
+            $("#submitAnswer").click(function(){
+                addAnswer($("#TextAnswer").val(), question_id)
+                $("#TextAnswer").val("")
+            })
+            
+            
+        });
+        
+    </script>
+
+  </head>
+  <body>
+    <br>
+    <h3 id="header" style="position: relative; left:40px;"> </h3>
+    <br>
+    <div style="width: 100%; display: table;">
+        <table style="height: 350px;">
+          <tr>
+            <th>
+            <div style="position:relative; left:40px;">
+                <video  id="videoPlayer" controls 
+                        class="video-js vjs-default-skin"
+                        width="640"
+                        data-setup='{ "autoplay": true, "preload": "auto", "techOrder": ["youtube"], "sources": [{ "type": "video/youtube" }'
+                >
+                </video>
+            </div>
+            </th>
+            <th>
+            <div style="vertical-align: top; text-align:left; "> 
+                <h4 style="position:relative; left:80px;"> List of Questions </h4>
+                <div style= "overflow-y:auto; overflow-x:auto; height:300px; position:relative; min-width:400px; max-width:80%; left:80px">
+                  <table class="ui celled padded table" id="QuestionTable" style="text-align:left;">
+                    <thead>
+                      <tr>
+                        <th>Time</th>
+                        <th>Question</th>
+                        <th>Answers</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+            </th>
+            <tr>
+          </table>
+    </div>
+    <br>
+    <button class="ui button" id="Buttonplay" tabindex="0" style="margin-right: 530px; position:relative; left:40px;">
+    Play
+    </button> 
+    <button class="ui button" id="Buttonpause" tabindex="0">
+    Pause
+    </button>
+    <br><br><br>
+    <button class="ui button" id="NewQuestion" style="position:relative; left:40px;">
+      New Question
+      </button>
+    
+    <div style="width: 50%; display: table;" id="Question">
+      <br>
+      <div style="display: table-row; height: 70px;">
+          <div style="width: 10%; display: table-cell; position:relative; left:40px;">
+              <h4>Question</h4>
+          </div>
+          <div style="display: table-cell; position:relative; left:50px; "> 
+              <div class="ui right icon input">
+                  <textarea rows="2" cols="55" placeholder="Text of Question" id="TextQuestion"></textarea>
+              </div>
+              <button class="ui button" id="submitQuestion">Submit</button>
+          </div>
+      </div>
+    </div>
+
+    <div style="width: 50%; display: table;" id="Timetable">
+      <br>
+      <div style="display: table-row; height: 30px;">
+          <div style="width: 10%; display: table-cell; position:relative; left:40px;">
+              <h4>Time</h4>
+          </div>
+          <div style="display: table-cell; position:relative; left:50px;"> 
+              <div class="ui input focus" >
+                <input type="text" id="stopTime">
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <h4 id="QuestionUser" style="position:relative; left:40px;"></h4>
+
+    <h5 id="Answers" style="position:relative; left:40px;">Answers</h5>
+
+    <div id="AnswersTab">
+      <div style= "overflow:auto; max-height: 300px; position:relative; left:40px; width:80%;">
+        <table class="ui celled padded table" id="AnswerTable" style="text-align:left;">
+          <thead>
+            <tr>
+              <th style="width: 15%;" >User</th>
+              <th style="width: 25%; ">Name</th>
+              <th style="width: 60%; ">Text</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="width: 50%; display: table;" id="NewAnswerTab">
+      <br>
+      <div style="display: table-row; height: 70px;">
+          <div style="width: 10%; display: table-cell; position:relative; left:40px;">
+              <button class="ui button" id="submitAnswer">New Answer</button>
+          </div>
+          <div style="display: table-cell; position:relative; left:50px; "> 
+              <div class="ui right icon input">
+                  <textarea rows="2" cols="55" placeholder="Text of Answer" id="TextAnswer"></textarea>
+              </div>
+          </div>
+      </div>
+    </div>
+
+    <br>
+    <br>
+    <br>
+
+</body>
+
+</html>

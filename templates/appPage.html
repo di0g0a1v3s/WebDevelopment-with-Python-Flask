@@ -1,0 +1,27 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} Video APP </title>
+
+{% if loggedIn %}
+User logged in
+
+
+
+
+<br>
+<a href="{{ url_for("videos_list") }}"> Video List</a>
+{% if admin %}
+<br>
+<a href="{{ url_for("Log_list") }}"> Log listing</a>
+<br>
+<a href="{{ url_for("userstats") }}"> User statistics</a>
+{% endif %}
+<br>
+<a href="{{ url_for("logout") }}"> Logout</a>
+
+{% else %}
+<a href="{{ url_for("fenix-example.login") }}">Login with OAuth Example</a>
+{% endif %}
+
+<body>
+
+  </body>

@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.css">
+    <script  src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.js">  </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-xmlrpc/0.4.3/jquery.xmlrpc.js"> </script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script>
+        var params = window.location.search
+        console.log(params.search("id"))
+        function updateVideostable(){
+            $.ajax({
+                url: '/API/private/videos/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    console.log(data);
+                    $('#videosTable > tbody:last-child').empty()
+                    data["videos"].forEach(v => {
+                        console.log(v["id"]+" "+v["description"])
+                        $('#videosTable > tbody:last-child').
+                            append('<tr> <td style="text-align:left;">'+ '<a href="/private/videos/video?id=' +v["id"]+ '">'+ v["description"]+'</a>'+'</td><td>' +v["number_questions"] + '</td></tr>');
+                    });
+                }
+            });
+        }
+        function addNewVideo(url, description){
+            // TODO 4 - create an object (requestData) that contains the url and descrition
+            // look at the server to understand what data should be sent.
+            requestData={"url":url , "description":description}
+            $.ajax({
+                url: '/API/private/videos/',
+                type: "POST",
+                dataType: "json",
+                contentType: 'application/json',
+                data: JSON.stringify(requestData),
+                //TODO 5 after creating the video update the table
+                success: function(data){
+                  console.log("response for video creation"+data)
+                  updateVideostable()
+                  $("#newVideoURL").val("")
+                  $("#newVideoDescription").val("")
+              }
+            });
+        }
+        $(document).ready(function(){
+
+            updateVideostable()
+
+            $("#buttonAddVideo").click(function(){
+
+                newVideoURL=$("#newVideoURL").val()
+                newVideoDescription=$("#newVideoDescription").val()
+                addNewVideo(newVideoURL,newVideoDescription)
+                
+            })
+
+        });
+
+    </script>
+
+  </head>
+  <body>
+    <br>
+    <h3 style="position: relative; left:40px;" >List of videos</h3>
+    <table class="ui collapsing table" id="videosTable" style="position: relative; left:40px; text-align:center;">
+      <thead>
+        <tr>
+          <th>Title</th>  <th>QA</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    
+    <h3 style="position: relative; left:40px;">Add a new Video</h3>
+    <div class="ui input" style="position: relative; left:40px;">
+      <input type="text" placeholder="Video URL" id="newVideoURL">
+    </div>
+    <div class="ui input" style="position: relative; left:40px;">
+      <input type="text" placeholder="Video Description" id="newVideoDescription">
+    </div>
+    <button class="ui button" id="buttonAddVideo" style="position: relative; left:40px;">
+      Add
+    </button>
+  
+  </body>
+
+</html>

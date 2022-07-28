@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css"  href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.css">
+    <script  src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.js">  </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-xmlrpc/0.4.3/jquery.xmlrpc.js"> </script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script>
+       
+        function updateRequeststable(){
+            $.ajax({
+                url: '/API/admin/listRequests/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $('#Requests > tbody:last-child').empty()
+                    data["Requests"].forEach(v => {
+                        $('#Requests > tbody:last-child').
+                            append('<tr> <td>'+ v["IP"]+'</td><td>'+ v["endpoint"]+'</td><td>' +v["timestamp"] + '</td></tr>');
+                    });
+                }
+            });
+        }
+
+        function updatecreationtable(){
+            $.ajax({
+                url: '/API/admin/listDataCreationEvents/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $('#creation > tbody:last-child').empty()
+                    data["DataCreationEvents"].forEach(v => {
+                        $('#creation > tbody:last-child').
+                        append('<tr> <td>'+ v["data_type"]+'</td><td>'+ v["content"]+'</td><td>'+ v["timestamp"]+'</td><td>' +v["user_id"] + '</td></tr>');
+                      });
+                }
+            });
+        }
+        
+        $(document).ready(function(){
+
+          $.ajax({
+                url: '/API/admin/listRequests/',
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    $('#Requests > tbody:last-child').empty()
+                    data["Requests"].forEach(v => {
+                        $('#Requests > tbody:last-child').
+                            append('<tr> <td>'+ v["IP"]+'</td><td>'+ v["endpoint"]+'</td><td>'+ v["content"]+'</td><td>' +v["timestamp"] + '</td></tr>');
+                    });
+
+                    $.ajax({
+                        url: '/API/admin/listDataCreationEvents/',
+                        type: "GET",
+                        dataType: "json",
+                        success: function (data) {
+                            $('#creation > tbody:last-child').empty()
+                            data["DataCreationEvents"].forEach(v => {
+                                $('#creation > tbody:last-child').
+                                append('<tr> <td>'+ v["data_type"]+'</td><td>'+ v["content"].slice(1,-1)+'</td><td>'+ v["timestamp"]+'</td><td>' +v["user_id"] + '</td></tr>');
+                              });
+                        }
+                    })
+                }
+            })
+
+        });
+
+    </script>
+
+  </head>
+  <body>
+
+    <br>
+    <div style="vertical-align: top; text-align:left; "> 
+      <h4 style="position:relative; left:40px;"> Requests </h4>
+      <div style= "overflow:auto; max-height:1000px; position:relative; max-width:80%; left:40px">
+        <table class="ui fixed celled table" id="Requests" style="text-align:center;">
+          <thead>
+            <tr>
+              <th>IP</th>
+              <th>Endpoint</th>
+              <th>Content</th>
+              <th>Timestamp</th> 
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  
+    <br>
+    <div style="vertical-align: top; text-align:left; "> 
+      <h4 style="position:relative; left:40px;"> Data Creation </h4>
+      <div style= "overflow:auto; max-height:1000px; position:relative; max-width:80%; left:40px">
+        <table class="ui celled padded table" id="creation" style="text-align:center;">
+          <thead>
+            <tr>
+              <th>Data type</th>
+              <th>Content</th>
+              <th>Timestamp</th>
+              <th>User</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <br>
+    <br>
+    <br>
+    <br>
+  </body>
+
+</html>
