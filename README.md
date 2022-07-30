@@ -10,7 +10,7 @@ answers) application around videos.
 Users will be able to see videos stored in the system and make questions concerning particular instants
 of the videos and answer previous made questions.
 
-Goals:
+### Goals:
 
 • Define the set of resources to be made available
 
